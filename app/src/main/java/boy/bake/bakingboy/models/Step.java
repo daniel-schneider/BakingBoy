@@ -1,16 +1,25 @@
-package boy.bake.bakingboy.recipe;
+package boy.bake.bakingboy.models;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.google.gson.annotations.Expose;
+import com.google.gson.annotations.SerializedName;
 
 public class Step {
 
+    @SerializedName("id")
+    @Expose
     private Integer id;
+    @SerializedName("shortDescription")
+    @Expose
     private String shortDescription;
+    @SerializedName("description")
+    @Expose
     private String description;
+    @SerializedName("videoURL")
+    @Expose
     private String videoURL;
+    @SerializedName("thumbnailURL")
+    @Expose
     private String thumbnailURL;
-    private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     public Integer getId() {
         return id;
@@ -50,14 +59,6 @@ public class Step {
 
     public void setThumbnailURL(String thumbnailURL) {
         this.thumbnailURL = thumbnailURL;
-    }
-
-    public Map<String, Object> getAdditionalProperties() {
-        return this.additionalProperties;
-    }
-
-    public void setAdditionalProperty(String name, Object value) {
-        this.additionalProperties.put(name, value);
     }
 
 }

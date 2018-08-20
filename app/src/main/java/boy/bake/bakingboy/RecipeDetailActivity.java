@@ -1,81 +1,89 @@
 package boy.bake.bakingboy;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.widget.Toolbar;
-import android.view.View;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.support.annotation.VisibleForTesting;
+import android.support.test.espresso.IdlingResource;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.ActionBar;
-import android.view.MenuItem;
+import android.util.Log;
 
-/**
- * An activity representing a single Recipe detail screen. This
- * activity is only used on narrow width devices. On tablet-size devices,
- * item details are presented side-by-side with a list of items
- * in a {@link RecipeListActivity}.
- */
+import boy.bake.bakingboy.fragments.VideoFragment;
+import boy.bake.bakingboy.util.SimpleIdlingResource;
+
 public class RecipeDetailActivity extends AppCompatActivity {
+
+    private static final String TAG = RecipeDetailActivity.class.getSimpleName();
+    public static final String KEY_STEP_DATA = "key_step_data";
+    public static final String KEY_INGREDIENT_DATA = "key_ingredient_data";
+    public static final String KEY_PANE = "key_pane";
+    public static final String KEY_STEPS = "steps";
+    public static final String KEY_INGREDIENTS = "ingredients";
+    public static final String KEY_STEPS_JSON = "stepListJson";
+    public static final String KEY_INGREDIENTS_JSON = "ingredientsListJson";
+    public static final String KEY_ROTATION_DETAIL_ACTIVITY="rotationDetail";
+
+
+    private static boolean mTwoPane;
+    String mStepData;
+    String mIngredientsData;
+    boolean rotationDetails;
+
+    @Nullable
+    private SimpleIdlingResource mIdlingResource;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_detail);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.detail_toolbar);
-        setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own detail action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
-        // Show the Up button in the action bar.
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.setDisplayHomeAsUpEnabled(true);
+        if (savedInstanceState != null) {
+            rotationDetails = savedInstanceState.getBoolean(KEY_ROTATION_DETAIL_ACTIVITY);
+        } else {
+            mStepData = getIntent().getStringExtra(KEY_STEP_DATA);
+            mIngredientsData = getIntent().getStringExtra(KEY_INGREDIENT_DATA);
+            Bundle bundle = new Bundle();
+            bundle.putString(KEY_STEP_DATA, mStepData);
+            bundle.putString(KEY_INGREDIENT_DATA, mIngredientsData);
+            bundle.putBoolean(KEY_PANE, mTwoPane);
         }
 
-        // savedInstanceState is non-null when there is fragment state
-        // saved from previous configurations of this activity
-        // (e.g. when rotating the screen from portrait to landscape).
-        // In this case, the fragment will automatically be re-added
-        // to its container so we don't need to manually add it.
-        // For more information, see the Fragments API guide at:
-        //
-        // http://developer.android.com/guide/components/fragments.html
-        //
-        if (savedInstanceState == null) {
-            // Create the detail fragment and add it to the activity
-            // using a fragment transaction.
-            Bundle arguments = new Bundle();
-            arguments.putString(RecipeDetailFragment.ARG_ITEM_ID,
-                    getIntent().getStringExtra(RecipeDetailFragment.ARG_ITEM_ID));
-            RecipeDetailFragment fragment = new RecipeDetailFragment();
-            fragment.setArguments(arguments);
+        if (findViewById(R.id.video_container) != null) {
+            mTwoPane = true;
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.recipe_detail_container, fragment)
-                    .commit();
+                    .add(R.id.video_container, new VideoFragment()).commit();
         }
+
+        if (savedInstanceState == null) {
+            //Only initialize when needed for preserving rotations states
+            mStepData = getIntent().getStringExtra(KEY_STEPS);
+            mIngredientsData = getIntent().getStringExtra(KEY_INGREDIENTS);
+            Bundle bundle = new Bundle();
+            bundle.putString(KEY_STEPS_JSON, mStepData);
+            bundle.putString(KEY_INGREDIENTS_JSON, mIngredientsData);
+            bundle.putBoolean(KEY_PANE, mTwoPane);
+            Log.d(TAG, "Pane: " + mTwoPane);
+            RecipeDetailFragment detailFragment = new RecipeDetailFragment();
+            detailFragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.detail_fragment, detailFragment).commit();
+            rotationDetails = true;
+        }
+
+    }
+//TODO rename NoPane
+    public static boolean getNoPane() {
+        return mTwoPane;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == android.R.id.home) {
-            // This ID represents the Home or Up button. In the case of this
-            // activity, the Up button is shown. For
-            // more details, see the Navigation pattern on Android Design:
-            //
-            // http://developer.android.com/design/patterns/navigation.html#up-vs-back
-            //
-            navigateUpTo(new Intent(this, RecipeListActivity.class));
-            return true;
+    @VisibleForTesting
+    @NonNull
+    public IdlingResource getIdlingResource() {
+        if (mIdlingResource == null) {
+            mIdlingResource = new SimpleIdlingResource();
         }
-        return super.onOptionsItemSelected(item);
+        return mIdlingResource;
     }
+
 }
